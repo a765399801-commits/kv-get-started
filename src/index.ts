@@ -62,7 +62,7 @@ export default {
           const openid = wxData.openid
         
           // 2️⃣ openid → userId 映射（匿名、不泄露）
-          let userId = await env.USER_NOTIFICATION.get(`wxmap:${openid}`)
+          let userId = await env.USER_NOTIFICATION.get(`wxmap:${operid}`)
         
           if (!userId) {
             userId = crypto.randomUUID()
