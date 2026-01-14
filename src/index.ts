@@ -35,7 +35,7 @@ export default {
         
           return json({ success: true })
         }
-        // ===== 微信登录 =====
+       // ===== 微信登录 =====
         if (request.method === 'POST' && pathname === '/auth/wechat') {
           const { code } = await request.json()
         
@@ -43,6 +43,10 @@ export default {
             return json({ error: 'code is required' }, 400)
           }
         
+          console.log('=== DEBUG WECHAT LOGIN ===')
+          console.log('WX_APPID =', env.WX_APPID)
+          console.log('CODE =', code)
+
           // 1️⃣ 调微信 code2Session
           const wxRes = await fetch(
             `https://api.weixin.qq.com/sns/jscode2session` +
@@ -53,7 +57,16 @@ export default {
           )
         
           const wxData: any = await wxRes.json()
-        
+          const wxRes = await fetch(
+              `https://api.weixin.qq.com/sns/jscode2session` +
+                `?appid=${env.WX_APPID}` +
+                `&secret=${env.WX_SECRET}` +
+                `&js_code=${code}` +
+                `&grant_type=authorization_code`
+            )
+
+            const text = await wxRes.text()
+            console.log('WX RAW RESPONSE =', text)
           if (!wxData.openid) {
             // 🔥 关键：直接返回微信错误，方便你调试
             return json({ error: 'wx login failed', wxData }, 401)
@@ -62,11 +75,11 @@ export default {
           const openid = wxData.openid
         
           // 2️⃣ openid → userId 映射（匿名、不泄露）
-          let userId = await env.USER_NOTIFICATION.get(`wxmap:${operid}`)
+          let userId = await env.USER_NOTIFICATION.get(`wxmap:${openid}`)
         
+          await env.USER_NOTIFICATION.put(`wxmap:${openid}`, userId)
           if (!userId) {
             userId = crypto.randomUUID()
-            await env.USER_NOTIFICATION.put(`wxmap:${openid}`, userId)
           }
         
           // 3️⃣ 返回给小程序
@@ -74,6 +87,28 @@ export default {
             userId
           })
         }
+        // if (request.method === 'POST' && pathname === '/auth/wechat') {
+        //   const { code } = await request.json()
+
+        //   console.log('=== DEBUG WECHAT LOGIN ===')
+        //   console.log('WX_APPID =', env.WX_APPID)
+        //   console.log('CODE =', code)
+
+        //   const wxRes = await fetch(
+        //     `https://api.weixin.qq.com/sns/jscode2session` +
+        //       `?appid=${env.WX_APPID}` +
+        //       `&secret=${env.WX_SECRET}` +
+        //       `&js_code=${code}` +
+        //       `&grant_type=authorization_code`
+        //   )
+
+        //   const text = await wxRes.text()
+        //   console.log('WX RAW RESPONSE =', text)
+
+        //   return new Response(text, {
+        //     headers: { 'Content-Type': 'application/json' }
+        //   })
+        // }
 
       // ===== POST 设置 =====
       if (request.method === 'POST' && pathname === '/api/notification') {
