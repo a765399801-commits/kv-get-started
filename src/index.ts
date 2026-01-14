@@ -35,6 +35,45 @@ export default {
         
           return json({ success: true })
         }
+        // ===== 微信登录 =====
+        if (request.method === 'POST' && pathname === '/auth/wechat') {
+          const { code } = await request.json()
+        
+          if (!code) {
+            return json({ error: 'code is required' }, 400)
+          }
+        
+          // 1️⃣ 调微信 code2Session
+          const wxRes = await fetch(
+            `https://api.weixin.qq.com/sns/jscode2session` +
+            `?appid=${env.WX_APPID}` +
+            `&secret=${env.WX_SECRET}` +
+            `&js_code=${code}` +
+            `&grant_type=authorization_code`
+          )
+        
+          const wxData: any = await wxRes.json()
+        
+          if (!wxData.openid) {
+            // 🔥 关键：直接返回微信错误，方便你调试
+            return json({ error: 'wx login failed', wxData }, 401)
+          }
+        
+          const openid = wxData.openid
+        
+          // 2️⃣ openid → userId 映射（匿名、不泄露）
+          let userId = await env.USER_NOTIFICATION.get(`wxmap:${openid}`)
+        
+          if (!userId) {
+            userId = crypto.randomUUID()
+            await env.USER_NOTIFICATION.put(`wxmap:${openid}`, userId)
+          }
+        
+          // 3️⃣ 返回给小程序
+          return json({
+            userId
+          })
+        }
 
       // ===== POST 设置 =====
       if (request.method === 'POST' && pathname === '/api/notification') {
