@@ -19,6 +19,22 @@ export default {
 
         return json({ userId, status: value })
       }
+        // 浏览器调试写入（GET）
+        if (pathname === '/debug/set') {
+          const userId = url.searchParams.get('userId')
+          const status = url.searchParams.get('status')
+        
+          if (!userId || !status) {
+            return json({ error: 'missing params' }, 400)
+          }
+        
+          await env.USER_NOTIFICATION.put(
+            `notification:${userId}`,
+            status
+          )
+        
+          return json({ success: true })
+        }
 
       // ===== POST 设置 =====
       if (request.method === 'POST' && pathname === '/api/notification') {
