@@ -80,7 +80,7 @@ export default {
           }
         
           // 3️⃣ 返回给小程序
-          return json({ userId })
+          return json({ openid })
         }
 
         // if (request.method === 'POST' && pathname === '/auth/wechat') {
