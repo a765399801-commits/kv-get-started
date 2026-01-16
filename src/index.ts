@@ -19,13 +19,13 @@ export default {
         if (value === null) {
           return json({ error: 'not found' }, 404)
         }
-      //    return json({
-      //   key: kvKey,
-      //   widgets: value
-      // })
+         return json({
+        key: kvKey,
+        widgets: finalWidgets
+      })
         
       //   return json({ userId, value })
-        return json(finalWidgets)
+      //  return json(finalWidgets)
       }
         // 浏览器调试写入（GET）
         if (pathname === '/debug/set') {
