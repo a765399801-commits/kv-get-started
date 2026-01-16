@@ -107,11 +107,12 @@ export default {
         await env.USER_NOTIFICATION.put(
           `${userId}`,
           JSON.stringify(status)
-        )else if(status){
-          await env.USER_NOTIFICATION.put(
-          `${userId}`,
-          status
-        ) 
+        )}
+         else if(status){
+            await env.USER_NOTIFICATION.put(
+            `${userId}`,
+            status
+          ) 
          }
         return json({ success: true })
       }
