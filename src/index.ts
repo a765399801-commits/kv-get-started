@@ -43,10 +43,7 @@ export default {
           return json({ success: true })
         }
        // ===== 微信登录 =====
-    if (request.method !== 'POST' || url.pathname !== '/auth/wechat') {
-      return new Response('Not Found', { status: 404 })
-    }
-
+    if (request.method === 'POST' &&url.pathname=== '/auth/wechat') {
     try {
       const body = await request.json()
       const { code, nickname, widgets } = body
@@ -99,6 +96,7 @@ export default {
     } catch (err) {
       console.error(err)
       return json({ error: 'server error' }, 500)
+    }
     }
 
       // ===== POST 设置 =====
