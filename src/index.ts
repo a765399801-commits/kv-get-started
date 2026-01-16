@@ -66,7 +66,7 @@ export default {
       const name = `微信昵称:${nickname}`
       const wxKey = `key:${openid}`
       // 3️⃣ 写入 widgets（如果客户端有）
-      if (Array.isArray(nickname)) {
+      if (name&&wxKey) {
         await env.USER_NOTIFICATION.put(
           name,
           wxKey
