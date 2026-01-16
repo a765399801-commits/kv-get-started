@@ -108,7 +108,7 @@ export default {
         )
          if (Array.isArray(status)) {
         await env.USER_NOTIFICATION.put(
-          ${userId},
+          '${userId}',
           JSON.stringify(status)
         )
         return json({ success: true })
