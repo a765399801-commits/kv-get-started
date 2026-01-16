@@ -102,15 +102,17 @@ export default {
         if (!userId || !status) {
           return json({ error: 'userId and status are required' }, 400)
         }
-        await env.USER_NOTIFICATION.put(
-          `${userId}`,
-          status
-        )
+      
          if (Array.isArray(status)) {
         await env.USER_NOTIFICATION.put(
-          '${userId}',
+          `${userId}`,
           JSON.stringify(status)
-        )
+        )else if(status){
+          await env.USER_NOTIFICATION.put(
+          `${userId}`,
+          status
+        ) 
+         }
         return json({ success: true })
       }
 
