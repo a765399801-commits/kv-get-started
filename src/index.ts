@@ -5,13 +5,13 @@ export default {
       const pathname = url.pathname
 
       // ===== GET 查询 =====
-      if (request.method === 'GET' && pathname === '/api/notification') {
+      if (request.method === 'GET' && pathname === '/api/wechat') {
         const userId = url.searchParams.get('userId')
         if (!userId) {
           return json({ error: 'userId is required' }, 400)
         }
 
-        const value = await env.USER_NOTIFICATION.get(`notification:${userId}`)
+        const value = await env.USER_NOTIFICATION.get(`${userId}`)
 
         if (value === null) {
           return json({ error: 'not found' }, 404)
@@ -29,7 +29,7 @@ export default {
           }
         
           await env.USER_NOTIFICATION.put(
-            `notification:${userId}`,
+            `${userId}`,
             status
           )
         
@@ -95,23 +95,22 @@ export default {
     }
 
       // ===== POST 设置 =====
-      if (request.method === 'POST' && pathname === '/api/notification') {
+      if (request.method === 'POST' && pathname === '/api/wechat') {
         const body = await request.json()
         const { userId, status } = body
 
         if (!userId || !status) {
           return json({ error: 'userId and status are required' }, 400)
         }
-
-        if (!['enabled', 'disabled'].includes(status)) {
-          return json({ error: 'status must be enabled or disabled' }, 400)
-        }
-
         await env.USER_NOTIFICATION.put(
-          `notification:${userId}`,
+          `${userId}`,
           status
         )
-
+         if (Array.isArray(status)) {
+        await env.USER_NOTIFICATION.put(
+          ${userId},
+          JSON.stringify(status)
+        )
         return json({ success: true })
       }
 
