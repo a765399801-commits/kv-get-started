@@ -5,7 +5,7 @@ export default {
       const pathname = url.pathname
 
       // ===== GET 查询 =====
-      if (request.method === 'GET' && pathname === '/api/wechat') {
+      if (request.method === 'GET' && pathname === '/api/wechat/get') {
         const userId = url.searchParams.get('userId')
         if (!userId) {
           return json({ error: 'userId is required' }, 400)
@@ -102,7 +102,7 @@ export default {
     }
 
       // ===== POST 设置 =====
-      if (request.method === 'POST' && url.pathname === '/api/wechat') {
+      if (request.method === 'POST' && url.pathname === '/api/wechat/set') {
       let body: any
     
       try {
