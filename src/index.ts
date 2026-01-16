@@ -36,75 +36,100 @@ export default {
           return json({ success: true })
         }
        // ===== 微信登录 =====
-// ===== 微信登录 =====
-        if (request.method === 'POST' && pathname === '/auth/wechat') {
-          const { code } = await request.json()
-        
-          if (!code) {
-            return json({ error: 'code is required' }, 400)
-          }
-        
-          console.log('WX_APPID =', env.WX_APPID)
-          console.log('CODE =', code)
-        
-          // 1️⃣ 调微信 code2Session（只调一次）
-          const wxRes = await fetch(
-            `https://api.weixin.qq.com/sns/jscode2session` +
-              `?appid=${env.WX_APPID}` +
-              `&secret=${env.WX_SECRET}` +
-              `&js_code=${code}` +
-              `&grant_type=authorization_code`
-          )
-        
-          const wxData: any = await wxRes.json()
-          console.log('WX RESPONSE =', wxData)
-        
-          if (!wxData.openid) {
-            return json(
-              {
-                error: 'wx login failed',
-                wxData
-              },
-              401
-            )
-          }
-        
-          const openid = wxData.openid
-        
-          // 2️⃣ openid → userId 映射
-          let userId = await env.USER_NOTIFICATION.get(`wxmap:${openid}`)
-        
-          if (!userId) {
-            userId = crypto.randomUUID()
-            await env.USER_NOTIFICATION.put(`wxmap:${openid}`, userId)
-          }
-        
-          // 3️⃣ 返回给小程序
-          return json({ openid })
-        }
+    if (request.method !== 'POST' || url.pathname !== '/auth/wechat') {
+      return new Response('Not Found', { status: 404 })
+    }
 
-        // if (request.method === 'POST' && pathname === '/auth/wechat') {
-        //   const { code } = await request.json()
+    try {
+      const body = await request.json()
+      const { code, profile, widgets } = body
 
-        //   console.log('=== DEBUG WECHAT LOGIN ===')
-        //   console.log('WX_APPID =', env.WX_APPID)
-        //   console.log('CODE =', code)
+      if (!code) {
+        return json({ error: 'code is required' }, 400)
+      }
 
-        //   const wxRes = await fetch(
-        //     `https://api.weixin.qq.com/sns/jscode2session` +
-        //       `?appid=${env.WX_APPID}` +
-        //       `&secret=${env.WX_SECRET}` +
-        //       `&js_code=${code}` +
-        //       `&grant_type=authorization_code`
-        //   )
+      // ===============================
+      // 1️⃣ 微信 code → openid
+      // ===============================
+      const wxRes = await fetch(
+        `https://api.weixin.qq.com/sns/jscode2session` +
+          `?appid=${env.WX_APPID}` +
+          `&secret=${env.WX_SECRET}` +
+          `&js_code=${code}` +
+          `&grant_type=authorization_code`
+      )
 
-        //   const text = await wxRes.text()
-        //   console.log('WX RAW RESPONSE =', text)
+      const wxData: any = await wxRes.json()
 
-        //   return new Response(text, {
-        //     headers: { 'Content-Type': 'application/json' }
-        //   })
-        // }
+      if (!wxData.openid) {
+        return json(
+          {
+            error: 'wx login failed',
+            wxData
+          },
+          401
+        )
+      }
+
+      const openid = wxData.openid
+
+      // ===============================
+      // 2️⃣ openid → userId（匿名）
+      // ===============================
+      const wxKey = `wx:${openid}`
+      let userId = await env.USER_NOTIFICATION.get(wxKey)
+
+      if (!userId) {
+        userId = crypto.randomUUID()
+        await env.USER_NOTIFICATION.put(wxKey, userId)
+      }
+
+      // ===============================
+      // 3️⃣ 用户 Profile（昵称 / 头像）
+      // ===============================
+      const profileKey = `user:${userId}:profile`
+      const oldProfileRaw = await env.USER_NOTIFICATION.get(profileKey)
+      const oldProfile = oldProfileRaw
+        ? JSON.parse(oldProfileRaw)
+        : {}
+
+      const mergedProfile = {
+        ...oldProfile,
+        ...(profile || {})
+      }
+
+      await env.USER_NOTIFICATION.put(
+        profileKey,
+        JSON.stringify(mergedProfile)
+      )
+
+      // ===============================
+      // 4️⃣ Widgets（设备 / 组件）
+      // ===============================
+      const widgetsKey = `user:${userId}:widgets`
+
+      if (widgets) {
+        await env.USER_NOTIFICATION.put(
+          widgetsKey,
+          JSON.stringify(widgets)
+        )
+      }
+
+      const finalWidgets =
+        widgets ||
+        JSON.parse(
+          (await env.USER_NOTIFICATION.get(widgetsKey)) || '[]'
+        )
+
+      // ===============================
+      // 5️⃣ 返回给小程序
+      // ===============================
+      return json({
+        userId,
+        profile: mergedProfile,
+        widgets: finalWidgets
+      })
+    }
 
       // ===== POST 设置 =====
       if (request.method === 'POST' && pathname === '/api/notification') {
