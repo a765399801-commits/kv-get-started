@@ -61,9 +61,9 @@ export default {
       if (!wxData.openid) {
         return json({ error: 'wx login failed', wxData }, 401)
       }
-
+      const openid = wxData.openid
       // 2️⃣ 生成 KV Key
-      const kvKey = `${nickname}_${env.WX_APPID}`
+      const kvKey = `${nickname},${openid}`
 
       // 3️⃣ 写入 widgets（如果客户端有）
       if (Array.isArray(widgets)) {
