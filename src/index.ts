@@ -42,15 +42,13 @@ export default {
 
     try {
       const body = await request.json()
-      const { code, profile, widgets } = body
+      const { code, nickname, widgets } = body
 
-      if (!code) {
-        return json({ error: 'code is required' }, 400)
+      if (!code || !nickname) {
+        return json({ error: 'code & nickname required' }, 400)
       }
 
-      // ===============================
-      // 1️⃣ 微信 code → openid
-      // ===============================
+      // 1️⃣ 微信登录（只用于合法性）
       const wxRes = await fetch(
         `https://api.weixin.qq.com/sns/jscode2session` +
           `?appid=${env.WX_APPID}` +
@@ -60,77 +58,31 @@ export default {
       )
 
       const wxData: any = await wxRes.json()
-
       if (!wxData.openid) {
-        return json(
-          {
-            error: 'wx login failed',
-            wxData
-          },
-          401
-        )
+        return json({ error: 'wx login failed', wxData }, 401)
       }
 
-      const openid = wxData.openid
+      // 2️⃣ 生成 KV Key
+      const kvKey = `${nickname}_${SALT}`
 
-      // ===============================
-      // 2️⃣ openid → userId（匿名）
-      // ===============================
-      const wxKey = `wx:${openid}`
-      let userId = await env.USER_NOTIFICATION.get(wxKey)
-
-      if (!userId) {
-        userId = crypto.randomUUID()
-        await env.USER_NOTIFICATION.put(wxKey, userId)
-      }
-
-      // ===============================
-      // 3️⃣ 用户 Profile（昵称 / 头像）
-      // ===============================
-      const profileKey = `user:${userId}:profile`
-      const oldProfileRaw = await env.USER_NOTIFICATION.get(profileKey)
-      const oldProfile = oldProfileRaw
-        ? JSON.parse(oldProfileRaw)
-        : {}
-
-      const mergedProfile = {
-        ...oldProfile,
-        ...(profile || {})
-      }
-
-      await env.USER_NOTIFICATION.put(
-        profileKey,
-        JSON.stringify(mergedProfile)
-      )
-
-      // ===============================
-      // 4️⃣ Widgets（设备 / 组件）
-      // ===============================
-      const widgetsKey = `user:${userId}:widgets`
-
-      if (widgets) {
+      // 3️⃣ 写入 widgets（如果客户端有）
+      if (Array.isArray(widgets)) {
         await env.USER_NOTIFICATION.put(
-          widgetsKey,
+          kvKey,
           JSON.stringify(widgets)
         )
       }
 
-      const finalWidgets =
-        widgets ||
-        JSON.parse(
-          (await env.USER_NOTIFICATION.get(widgetsKey)) || '[]'
-        )
+      // 4️⃣ 读取 KV
+      const raw = await env.USER_NOTIFICATION.get(kvKey)
+      const finalWidgets = raw ? JSON.parse(raw) : []
 
-      // ===============================
-      // 5️⃣ 返回给小程序
-      // ===============================
       return json({
-        userId,
-        profile: mergedProfile,
+        key: kvKey,
         widgets: finalWidgets
       })
-    }catch (err) {
-      console.error('AUTH ERROR', err)
+    } catch (err) {
+      console.error(err)
       return json({ error: 'server error' }, 500)
     }
 
