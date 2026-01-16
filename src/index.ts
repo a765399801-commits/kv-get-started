@@ -129,6 +129,9 @@ export default {
         profile: mergedProfile,
         widgets: finalWidgets
       })
+    }catch (err) {
+      console.error('AUTH ERROR', err)
+      return json({ error: 'server error' }, 500)
     }
 
       // ===== POST 设置 =====
