@@ -102,27 +102,30 @@ export default {
     }
 
       // ===== POST 设置 =====
-     if (request.method === 'POST' || url.pathname === '/api/wechat'){
-        const body = await request.json()
-        const { userId, status } = body
-        
-        if (!userId || !status) {
-          return json({ error: 'userId and status are required' }, 400)
-        }
-      
-         if (Array.isArray(status)) {
-        await env.USER_NOTIFICATION.put(
-          `${userId}`,
-          JSON.stringify(status)
-        )}
-         else if(status){
-            await env.USER_NOTIFICATION.put(
-            `${userId}`,
-            status
-          ) 
-         }
-        return json({ success: true })
+      if (request.method === 'POST' && url.pathname === '/api/wechat') {
+      let body: any
+    
+      try {
+        body = await request.json()
+      } catch {
+        return json({ error: 'Invalid JSON body' }, 400)
       }
+    
+      const { userId, status } = body
+    
+      if (!userId || status === undefined) {
+        return json({ error: 'userId and status are required' }, 400)
+      }
+    
+      // ✅ 统一用 JSON 存
+      await env.USER_NOTIFICATION.put(
+        userId,
+        JSON.stringify(status)
+      )
+    
+      return json({ success: true })
+    }
+
 
       return new Response('Not Found', { status: 404 })
 
