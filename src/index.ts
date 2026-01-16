@@ -102,10 +102,10 @@ export default {
     }
 
       // ===== POST 设置 =====
-      if (request.method === 'POST' && pathname === '/api/wechat') {
+     if (request.method === 'POST' || url.pathname === '/api/wechat'){
         const body = await request.json()
         const { userId, status } = body
-
+        
         if (!userId || !status) {
           return json({ error: 'userId and status are required' }, 400)
         }
