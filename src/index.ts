@@ -12,12 +12,20 @@ export default {
         }
 
         const value = await env.USER_NOTIFICATION.get(`${userId}`)
-
+      // 4️⃣ 读取 KV
+      const raw = await env.USER_NOTIFICATION.get(value)
+      const finalWidgets = raw ? JSON.parse(raw) : []
+        
         if (value === null) {
           return json({ error: 'not found' }, 404)
         }
-
-        return json({ userId, status: value })
+      //    return json({
+      //   key: kvKey,
+      //   widgets: value
+      // })
+        
+      //   return json({ userId, value })
+        return json(userId, value)
       }
         // 浏览器调试写入（GET）
         if (pathname === '/debug/set') {
