@@ -63,7 +63,7 @@ export default {
       }
 
       // 2️⃣ 生成 KV Key
-      const kvKey = `${nickname}_${SALT}`
+      const kvKey = `${nickname}_${env.WX_APPID}`
 
       // 3️⃣ 写入 widgets（如果客户端有）
       if (Array.isArray(widgets)) {
