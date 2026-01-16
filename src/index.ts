@@ -63,7 +63,16 @@ export default {
       }
       const openid = wxData.openid
       // 2️⃣ 生成 KV Key
-      const kvKey = `${nickname},${openid}`
+      const name = `微信昵称:${nickname}`
+      const wxKey = `key:${openid}`
+      // 3️⃣ 写入 widgets（如果客户端有）
+      if (Array.isArray(wxKey)) {
+        await env.USER_NOTIFICATION.put(
+          name,
+          wxKey
+        )
+      }
+      const kvKey = `${openid}`
 
       // 3️⃣ 写入 widgets（如果客户端有）
       if (Array.isArray(widgets)) {
@@ -72,7 +81,6 @@ export default {
           JSON.stringify(widgets)
         )
       }
-
       // 4️⃣ 读取 KV
       const raw = await env.USER_NOTIFICATION.get(kvKey)
       const finalWidgets = raw ? JSON.parse(raw) : []
