@@ -10,6 +10,7 @@ export default {
         url: request.url
       }),
       {
+        
         headers: { 'Content-Type': 'application/json' }
       }
     )
