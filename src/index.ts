@@ -11,9 +11,9 @@ export default {
           return json({ error: 'userId is required' }, 400)
         }
 
-        const value = await env.USER_NOTIFICATION.get(`${userId}`)
+        const raw = await env.USER_NOTIFICATION.get(`${userId}`)
       // 4️⃣ 读取 KV
-      const raw = await env.USER_NOTIFICATION.get(value)
+      //const raw = await env.USER_NOTIFICATION.get(value)
       const finalWidgets = raw ? JSON.parse(raw) : []
         
         if (value === null) {
@@ -25,7 +25,7 @@ export default {
       // })
         
       //   return json({ userId, value })
-        return json(userId, value)
+        return json(finalWidgets)
       }
         // 浏览器调试写入（GET）
         if (pathname === '/debug/set') {
