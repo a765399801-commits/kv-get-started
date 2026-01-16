@@ -11,16 +11,15 @@ export default {
           return json({ error: 'userId is required' }, 400)
         }
 
-        const raw = await env.USER_NOTIFICATION.get(`${userId}`)
+        const raw = await env.USER_NOTIFICATION.get(userId)
       // 4️⃣ 读取 KV
       //const raw = await env.USER_NOTIFICATION.get(value)
       const finalWidgets = raw ? JSON.parse(raw) : []
         
-        if (value === null) {
+        if (raw === null) {
           return json({ error: 'not found' }, 404)
         }
          return json({
-        key: kvKey,
         widgets: finalWidgets
       })
         
