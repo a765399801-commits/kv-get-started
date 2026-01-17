@@ -78,13 +78,13 @@ export default {
       }
       const kvKey = `${openid}`
 
-      // 3️⃣ 写入 widgets（如果客户端有）
-      if (Array.isArray(widgets)) {
-        await env.USER_NOTIFICATION.put(
-          kvKey,
-          JSON.stringify(widgets)
-        )
-      }
+      // // 3️⃣ 写入 widgets（如果客户端有）
+      // if (Array.isArray(widgets)) {
+      //   await env.USER_NOTIFICATION.put(
+      //     kvKey,
+      //     JSON.stringify(widgets)
+      //   )
+      // }
       // 4️⃣ 读取 KV
       const raw = await env.USER_NOTIFICATION.get(kvKey)
       const finalWidgets = raw ? JSON.parse(raw) : []
